@@ -1,1 +1,4 @@
 *.pdf
+presentation/figs/_raw
+ignore.*
+Manifest.toml

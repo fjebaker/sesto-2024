@@ -7,7 +7,6 @@
 #let PRIMARY_COLOR = rgb("#be2b31")
 #let TEXT_COLOR = black.lighten(13%)
 
-
 #let tamburlaine-theme(aspect-ratio: "4-3", body) = {
   set page(
     paper: "presentation-" + aspect-ratio,
@@ -103,10 +102,48 @@
   )
 
   let content = {
-    block(spacing: 0.0em, par(leading: 10pt, text(fill: TEXT_COLOR, size: 50pt, weight: "black", title)))
+    block(spacing: 0.8em, par(leading: 10pt, text(fill: TEXT_COLOR, size: 50pt, weight: "black", title)))
     body
   }
 
   logic.polylux-slide(content)
 }
 
+#let _setgrp(img, grp, display:true) = {
+  let key = "id=\"" + grp + "\""
+  let pos1 = img.split(key)
+  if display {
+    pos1.at(1) = pos1.at(1).replace("display:none", "display:inline", count:1)
+  } else {
+    pos1.at(1) = pos1.at(1).replace("display:inline", "display:none", count:1)
+  }
+  pos1.join(key)
+}
+
+#let setgrp(img, ..grps, display: true) = {
+  grps.pos().fold(img, (acc, grp) => {
+    _setgrp(acc, grp, display: display)
+  })
+}
+
+#let animsvg(img, display_callback, ..frames, handout: false) = {
+  let _frame_wrapper(_img, hide: (), display: ()) = {
+    setgrp((setgrp(_img, ..hide, display: false)), ..display, display: true)
+  }
+  if handout == true {
+    let final_image = frames.pos().fold(img, (im, args) => _frame_wrapper(im, ..args))
+    display_callback(1, final_image)
+  } else {
+    let output = ()
+    let current_image = img
+    for args in frames.pos().enumerate() {
+      let (i, frame) = args
+      current_image = _frame_wrapper(
+        current_image, ..frame
+      )
+      let this = display_callback(i + 1, current_image)
+      output.push(this)
+    }
+    output.join()
+  }
+}
