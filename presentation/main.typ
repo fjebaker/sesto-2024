@@ -7,13 +7,31 @@
 #show: tamburlaine-theme.with(aspect-ratio: "4-3")
 #show link: item => underline(text(blue)[#item])
 
+#let COLOR_CD = color.rgb("#56B4E9")
+#let COLOR_REFL = color.rgb("#D55E00")
+#let COLOR_CONT = color.rgb("#0072B2")
+
+#set par(spacing: 0.7em)
+
 #let uob_logo = read("./figs/UoB_CMYK_24.svg")
 
 #title-slide(
   title_size: 30pt,
   title: [
     Advancements in the theory and practice of
-    #move(dy: -0.5em, text(size: 120pt, stack(spacing: 20pt, move(dx: -30pt, "Spectral"), "Variability", "Modelling")))
+    #move(
+      dy: -0.3em,
+      text(
+        size: 120pt,
+        stack(
+          spacing: 20pt,
+          move(dx: -30pt, "Spectral"),
+          "Variability",
+          "Modelling"
+        )
+      )
+    )
+    #v(0.5em)
   ],
   authors: ([Fergus Baker#super("1")], text(weight: "regular", [Andrew Young#super("1")])),
   where: "Sesto",
@@ -21,6 +39,7 @@
   #align(right)[#image.decode(uob_logo, width: 20%)]
 ]
 
+// ==== Part 1 ============================================================= //
 
 #let im_lamppost = read("figs/lamp-post.traces-export.svg")
 
@@ -48,57 +67,115 @@
   // - show the different paths that light can take
 ]
 
-#slide(title: "The lamp post model")[
-  How we use it to model reverberation lags:
-  - how we bin a 2D response function showing arrival time as a function of energy
-  - how this can be convolved with the reflection spectrum or used as the Green's function (impulse response) for the coronal spectrum
-    - take energy bands, calculate cross spectrum, etc.
-  - e.g. pivoting power law $e^(Gamma (t))$
+#slide(title: "The corona changes the emissivity of the disc")[
+  *Flux* into the disc changes as a function of *radius*:
+
+  // TODO: figures showing how number of photons changes per radial bin
+  // with different coronal heights
+  // also show how the arrival time on each patch of the disc changes
+
+  Observed *steep emissivity profile* motivates the lamp post corona (Fabian et al. 2004).
+]
+
+#let cbox(content, ..args) = rect(radius: 3pt, outset: 5pt, ..args, content)
+
+#slide(title: "The observer changes how the disc is seen")[
+  Trace *observer to disc* and bin by relative *redshift* $g$ and *total arrival time* $t_"tot" = #cbox(stroke:COLOR_CD, $t_("corona" -> "disc")$) + #cbox(stroke: COLOR_REFL, $t_("disc" -> "observer")$)$
+
+  // TODO: small figure showing the traces we are considering, arrival time of
+  // a given radius to the observer, and an example of the 2D transfer function
+  // maybe with the redshift equation
+
+  - Light bending effects *distorts* the spectrum $g_"obs"$ and arrival time $t_"tot"$ depending on $theta_"observer"$.
+]
+
+#slide(title: "Calculating lags")[
+  The *2D transfer functions* are *impulse responses*, that be *convolved* with other processes:
+  - Reflection spectrum
+
+  // TODO: figure showing a convolution through a reflionx table
+  // briefly explain how we pick energy bands and then calculate lags between them
+  // if any equations, put the equations in the figures
+
+  - Coronal spectrum variability (Mastroserio et al. 2018, 2021)
+    - Subtle complexity: *changes in coronal spectrum* propagate through to *changes in emissivity*
+    - Skip considering these today for brevity
 ]
 
 #slide(title: "Practical approaches")[
-  - binning is slow so we need a better way to calculate the 2D transfer functions
-  - In time averaged spectroscopy, there are Cunningham transfer functions
-    - Re-parameterize the image plane into coordinates on the disc
-    - Useful for modelling and sparse
-  - For variability? We make them time dependent and solve a 2D integral instead
+  Binning 2D transfer functions is slow
+  - Spectroscopy: use *Cunningham transfer functions* (CTF)
+    - Re-parameterize image plane into coordinates on the disc $(alpha, beta) arrow.r (r_"em", g^star)$
+    - Can be efficiently *pre-computed* and *integrated* (e.g. Dauser et al. 2010).
+
+    // TODO: figure showing some transfer functions and the reparameterization,
+    // along with maybe some of the time dependence
+
+  #cbox(fill: PRIMARY_COLOR, width: 100%, text(fill: SECONDARY_COLOR)[
+    For variability: make *CTF time dependent*, solve a 2D integral instead.
+  ])
 ]
 
-#slide(title: "The lamp post model")[
-  - Physical complexities in modelling
-  - Different things to take into account for self-consistent modelling
-    - Full reflection spectrum on the disc
-    - Mastroserio: ionization parameter
-    - Instrument response
-  - For brevity, ignore those effects today
-]
+// ==== Part 2 ============================================================= //
 
-// part 2: slide 4
 #slide(title: "Moving out from under the lamp post")[
-  - Joke about person searching for keys under the lamp post
-    - "Is this the variability you were looking for?" No but the light is much better here
+  // - Joke about person searching for keys under the lamp post
+  //   - "Is this the variability you were looking for?" No but the light is much better here
   Extended geometry in reverberation modelling largely under explored
-  - Two lamp post model (Chainakun and Young)
-  - Extended sources (Wilkins)
+  - Often phenomenologically invoked
+  - *Two lamp post* model (Chainakun & Young 2017, Lucchini et al. 2023)
+  - Continuous *extended sources* (Wilkins et al. 2016)
+
+  // TODO: include some figures from those papers to show how they approach things
+
+  Motivation to study extended sources in detail to explore what is possible.
 ]
 
 #slide(title: "Extended coronal models")[
-  - Still assume axis symmetry
-  - Diagrammatic overview
-  - Show decomposition of corona into volumes
-  - Reason how we can treat each annulus as an off axis point and weight it
+  Assume *axis-symmetric* for computational simplicity.
+  - Decomposition:
+
+  // TODO: figure showing how we decompose the source into volumes
+  // Reason how we can treat each annulus as an off axis point and weight it
+
+  #cbox(fill: PRIMARY_COLOR, width: 100%, text(fill: SECONDARY_COLOR)[
+    Each ring *modelled by a single point source*. Totals are weighted sums: e.g. emissivity
+    $
+     epsilon_"tot" (rho, t) = integral_0^R V(x) epsilon_x (rho, t) dif x,
+    $
+    where $V(x)$ is the volume of the annulus in $(x, x + dif x)$.
+  ])
 ]
 
-#slide(title: "Challenges with extended models")[
-  - Time dependent emissivity functions
-    - shape of emissivity functions changes dramatically
-  - Not all regions of the corona will flash together (travel time)
-  - Not all regions of the corona will have the same power law index
-  - Continuum transfer function over a face of the corona
+#slide(title: "An extended picture")[
+  As suggested in the last slide, *emissivity* is now *time dependent*. Why?
+
+  // TODO: figure showing why the emissivity functions are now time dependence
+  // for an arbitrary point
 ]
 
-#slide(title: "Illustrative results")[
-  - show the effects of changing some of these parameters
+#slide(title: "Additional challenges")[
+  Propagating *source* fluctuations: each region of the corona
+  - may "flash" at different times,
+  - may have different spectrum.
+
+  // TODO: figuring showing the different directions that the propagation may
+  // move in
+
+  Continuum *arrival time* $#cbox(stroke: COLOR_CONT, $t_("corona" -> "observer")$)$ and *observed spectrum* are blurred:
+
+  // TODO: 2D transfer function for the continuum
 ]
 
-// part 3: slide
+#slide(title: [Illustrative #super(text(size: 20pt, weight: "regular", "(preliminary)")) results])[
+  // - show the effects of changing some of these parameters
+]
+
+#slide(title: "Future work")[
+
+]
+
+// TODO: thank you slide with references and links
+#slide()[
+
+]
