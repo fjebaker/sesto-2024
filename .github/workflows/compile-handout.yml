@@ -26,6 +26,8 @@ jobs:
         run: |
           # ensure handout mode enabled
           sed -i 's/#let HANDOUT_MODE = false/#let HANDOUT_MODE = true/' presentation/main.typ
+          # temporary fix for different typst version
+          sed -i 's/#set par(spacing: 0.7em)/#show par: set block(spacing: 0.7em)/g' presentation/main.typ
           typst compile --font-path presentation/fonts/ presentation/main.typ ${{ steps.date.outputs.date }}.pdf
       - name: Upload release
         uses: softprops/action-gh-release@v1
