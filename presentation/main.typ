@@ -90,7 +90,7 @@
 ]
 
 #slide(title: "Calculating lags")[
-  The *2D transfer functions* are *impulse responses*, that be *convolved* with other processes:
+  The *2D transfer functions* are effectively *Green's functions*, that be *convolved* with other processes:
   - Reflection spectrum
 
   // TODO: figure showing a convolution through a reflionx table
@@ -147,8 +147,26 @@
   ])
 ]
 
+#let im_extendpost = read("figs/extended.traces-export.svg")
+
 #slide(title: "An extended picture")[
-  As suggested in the last slide, *emissivity* is now *time dependent*. Why?
+  As suggested in the last slide, *emissivity* is now *time dependent*. Why? Consider 2D slice of one annulus:
+  #place(move(dy: 1em, dx: 2em, uncover(4, block(width: 50%, text(size: 20pt)[
+    Sweep around the axis to find a geodesic that hits each $phi.alt$. Plotted here is the arrival time $t_("corona" -> "disc")$.
+  ]))))
+  #align(center)[
+    #animsvg(
+      im_extendpost,
+      (i, im) => only(i)[
+        #image.decode(im, width: 70%)
+      ],
+      (),
+      (hide: ("g126",)),
+      (display: ("g142",)),
+      (display: ("g143", "g133")),
+      handout: HANDOUT_MODE,
+    )
+  ]
 
   // TODO: figure showing why the emissivity functions are now time dependence
   // for an arbitrary point

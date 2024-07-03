@@ -109,8 +109,6 @@ begin
         leftspinevisible = false,
         rightspinevisible = false,
         bottomspinevisible = false,
-        # xlabel = L"x\,[r_\text{g}]",
-        # ylabel = L"z\, [r_\text{g}]",
     )
     hidedecorations!(ax2)
     xlims!(ax2, -5, 45)

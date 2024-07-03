@@ -1,15 +1,16 @@
 using Gradus, Makie, CairoMakie
 using CoordinateTransformations, Rotations, LinearAlgebra
+import Gradus.DataInterpolations as DataInterpolations
 
 _default_palette() = 
     Iterators.Stateful(Iterators.Cycle(Makie.wong_colors()))
 
-function clip_plot_lines!(ax, x, y, z; kwargs...)
+function clip_plot_lines!(ax, x, y, z; dim = 10.0, kwargs...)
     mask = @. (x > dim) | (x < -dim) | (y > dim) | (y < -dim) | (z > 1.05dim)
     mask = .!mask
     Makie.lines!(ax, x[mask], y[mask], z[mask]; kwargs...)
 end
-function clip_plot_scatter!(ax, x, y, z; kwargs...)
+function clip_plot_scatter!(ax, x, y, z; horizon_r = 1.0, kwargs...)
     if first(is_visible(ax, [x; y; z], horizon_r))
         clip_plot_scatter!(ax, [x], [y], [z]; kwargs...)
     end
@@ -20,6 +21,8 @@ function clip_plot_scatter!(
     y::AbstractArray,
     z::AbstractArray;
     linewidth = nothing,
+    linestyle = nothing,
+    dim = 10.0,
     kwargs...,
 )
     mask = @. (x > dim) | (x < -dim) | (y > dim) | (y < -dim) | (z > 1.1dim)
@@ -29,7 +32,7 @@ end
 
 spher_to_cart(r, θ, ϕ) = (r * sin(θ) * cos(ϕ), r * sin(θ) * sin(ϕ), r * cos(θ))
 
-function plot_obscured_line!(ax, A, B; kwargs...)
+function plot_obscured_line!(ax, A, B; horizon_r = 1.0, kwargs...)
     p = A
     dvec = B - A
     for i = 1:1000
@@ -128,9 +131,9 @@ function is_visible(ax, points, R)
     end
 end
 
-function plot_sol(ax, x; R = 1.0, kwargs...)
+function plot_sol(ax, x; show_intersect = false, R = 1.0, dim = 10.0, horizon_r = R, kwargs...)
     cart_points = []
-    for t in range(x.t[1], x.t[end], 2_000)
+    for t in range(x.t[1], min(200, x.t[end]), 5_000)
         p = x(t)[1:4]
         if p[2] > (1.08 * horizon_r)
             push!(cart_points, [spher2cart(p...)...])
@@ -171,21 +174,59 @@ function plot_sol(ax, x; R = 1.0, kwargs...)
         res[s:e, 2],
         res[s:e, 3];
         linewidth = 0.8,
+            dim = dim,
         kwargs...
     )
-    if x.prob.p.status[] == Gradus.StatusCodes.IntersectedWithGeometry
+    if show_intersect && x.prob.p.status[] == Gradus.StatusCodes.IntersectedWithGeometry
         clip_plot_scatter!(
             ax,
-            res[end, 1],
-            res[end, 2],
-            res[end, 3];
+            res[e, 1],
+            res[e, 2],
+            res[e, 3];
+            dim = dim,
+            horizon_r = horizon_r,
             markersize = 8,
             kwargs...
         )
     end
 end
 
-function plotring(ax, r)
+function plot_along_ring!(ax, r, Xs, Ys; N = 100, rot = 0, linewidth = 1.0, zero = 0.0, band_alpha = 0.1, kwargs...)
+    XX = mod2pi.(Xs)
+    I = sortperm(XX)
+    _interp = @views DataInterpolations.LinearInterpolation(Ys[I], XX[I])
+    Xlow, Xhigh = extrema(XX)
+
+    function interp(v)
+        if v >= Xlow && v <= Xhigh
+            _interp(v)
+        else
+            NaN
+        end
+    end
+
+    upper = Point3f[]
+    lower = Point3f[]
+    for phi in range(0.0, 2π, N)
+        X, Y, Z = spher2cart(r, π / 2, phi)
+        val = interp(mod2pi(phi + rot))
+        if isnan(val)
+            continue
+        end
+        p1 = Point3f(X, Y, Z + zero + val)
+        p2 = Point3f(X, Y, zero)
+        push!(upper, p1)
+        push!(lower, p2)
+    end
+
+    push!(upper, first(upper))
+    push!(lower, first(lower))
+
+    band!(ax, lower, upper; kwargs..., alpha = band_alpha)
+    lines!(ax, upper; linewidth = linewidth, kwargs...)
+end
+
+function plotring(ax, r; height = 0, horizon_r = 1.0, kwargs...)
     x = Float64[]
     y = Float64[]
     z = Float64[]
@@ -193,10 +234,10 @@ function plotring(ax, r)
         X, Y, Z = spher2cart(r, π / 2, ϕ)
         push!(x, X)
         push!(y, Y)
-        push!(z, Z)
+        push!(z, Z + height)
     end
     # clip_plot_lines!(ax, x, y, z, color=COLOR, linewidth = 0.8)
-    plot_line_occluded!(ax, x, y, z, horizon_r; color = COLOR, linewidth = 0.8)
+    plot_line_occluded!(ax, x, y, z, horizon_r; linewidth = 0.8, kwargs...)
 end
 
 spher2cart(r, θ, ϕ) = r * sin(θ) * cos(ϕ), r * sin(θ) * sin(ϕ), r * cos(θ)
