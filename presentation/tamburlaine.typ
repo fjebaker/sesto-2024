@@ -80,7 +80,7 @@
     block(
       stroke: ( top: 1mm + TEXT_COLOR ), width: 100%, inset: ( y: .3em ),
       text(.5em, {
-        "CC BY 4.0 Fergus Baker"
+        "CC BY-SA 4.0 Fergus Baker"
         h(2em)
         "/"
         h(2em)
