@@ -183,6 +183,7 @@
 ]
 
 #slide(title: "Additional challenges")[
+  #set text(size: 20pt)
   Propagating *source* fluctuations: each region of the corona
   - may "flash" at different times,
   - may have different spectrum.
@@ -193,6 +194,13 @@
   Continuum *arrival time* $#cbox(stroke: COLOR_CONT, $t_("corona" -> "observer")$)$ and *observed spectrum* are blurred:
 
   // TODO: 2D transfer function for the continuum
+  #align(center,
+    image("./figs/continuum.transfer-function.png", width: 70%)
+  )
+  #text(size: 18pt)[
+    *Left*: co-rotating with disc. #h(1fr) *Right*: constant angular velocity. \
+    Both have $rho_"max" = 20 r_"g"$, $h = 5 r_"g"$ and $theta_"obs" = 45 degree$.
+  ]
 ]
 
 #slide(title: [Illustrative #super(text(size: 20pt, weight: "regular", "(preliminary)")) results])[
