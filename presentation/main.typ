@@ -185,15 +185,21 @@
 #slide(title: "Additional challenges")[
   #set text(size: 20pt)
   Propagating *source* fluctuations: each region of the corona
-  - may "flash" at different times,
-  - may have different spectrum.
-
-  // TODO: figuring showing the different directions that the propagation may
-  // move in
-
-  Continuum *arrival time* $#cbox(stroke: COLOR_CONT, $t_("corona" -> "observer")$)$ and *observed spectrum* are blurred:
-
-  // TODO: 2D transfer function for the continuum
+  #grid(
+    columns: (60%, 1fr),
+    [
+      - may "flash" at different times,
+      - may have different spectrum.
+      \
+      Continuum *arrival time* $t_("corona" -> "observer")$ and *observed spectrum* are blurred:
+    ],
+    [
+      #move(dy: -0.3em, dx: 1em,
+        image("./figs/propagation.svg", width: 65%)
+      )
+    ]
+  )
+  #v(-1em)
   #align(center,
     image("./figs/continuum.transfer-function.png", width: 70%)
   )
