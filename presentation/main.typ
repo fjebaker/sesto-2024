@@ -139,6 +139,7 @@
   // Reason how we can treat each annulus as an off axis point and weight it
 
   #cbox(fill: PRIMARY_COLOR, width: 100%, text(fill: SECONDARY_COLOR)[
+    #set text(size: 20pt)
     Each ring *modelled by a single point source*. Totals are weighted sums: e.g. emissivity
     $
      epsilon_"tot" (rho, t) = integral_0^R V(x) epsilon_x (rho, t) dif x,
@@ -151,8 +152,11 @@
 
 #slide(title: "An extended picture")[
   As suggested in the last slide, *emissivity* is now *time dependent*. Why? Consider 2D slice of one annulus:
-  #place(move(dy: 1em, dx: 2em, uncover(4, block(width: 50%, text(size: 20pt)[
-    Sweep around the axis to find a geodesic that hits each $phi.alt$. Plotted here is the arrival time $t_("corona" -> "disc")$.
+  #place(move(dy: 0.5em, dx: 2em, uncover("3-", block(width: 58%, text(size: 18pt)[
+    Sweep 2D plane around the axis to find a geodesic that hits each $phi.alt$. Plotted is the arrival time $t_("corona" -> "disc")$.
+  ]))))
+  #place(move(dy: 4em, dx: 2.5em, uncover(4, block(width: 50%, text(size: 18pt)[
+    Axis symmetry: can treat a single point as a ring up to normalisation.
   ]))))
   #align(center)[
     #animsvg(
@@ -161,15 +165,21 @@
         #image.decode(im, width: 70%)
       ],
       (),
-      (hide: ("g126",)),
-      (display: ("g142",)),
+      (hide: ("g126",), display: ("g142",)),
       (display: ("g143", "g133")),
+      (),
       handout: HANDOUT_MODE,
     )
   ]
+]
 
-  // TODO: figure showing why the emissivity functions are now time dependence
-  // for an arbitrary point
+#slide(title: "Time-dependent emissivity functions")[
+  #align(center,
+    image("./figs/ring-corona.transfer-functions.png", width: 80%)
+  )
+  #set text(size: 20pt)
+  *Left*: Kerr spacetime ($a=0.998$). #h(1fr) *Right*: Flat spacetime. \
+  The purple-orange surface is for a ring at $rho=11 r_"g"$, whereas the green-pink surface is $rho = 5 r_"g"$ (both at $h = 5 r_"g"$, colour scale is $log_(10)$).
 ]
 
 #slide(title: "Additional challenges")[

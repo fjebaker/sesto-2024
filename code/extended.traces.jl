@@ -1,45 +1,10 @@
 include("common.jl")
 
-struct RingCorona{T} <: Gradus.AbstractCoronaModel{T}
-    "Radius of the ring"
-    r::T
-    "Height of the base of the cylinder above the disc"
-    h::T
-end
-
-function Gradus.sample_position_velocity(m::AbstractMetric, model::RingCorona{T}) where {T}
-    r = sqrt(model.r^2 + model.h^2)
-    # (x, y) flipped because coordinates are off the Z axis
-    θ = atan(model.r, model.h) 
-    x = SVector{4,T}(0, r, θ, 0)
-    gcomp = metric_components(m, SVector(x[2], x[3]))
-    v = inv(√(-gcomp[1])) * SVector{4,T}(1, 0, 0, 0)
-    x, v
-end
-
-function rodrigues_rotate(k, v, θ)
-    v * cos(θ) + (k × v) * sin(θ) + k * (k ⋅ v) * (1 - cos(θ))
-end
-
-function new_polar_angle_to_velfunc(m::AbstractMetric, x, v, δs; θ₀ = zero(eltype(x)), ϕ = zero(eltype(x)), rot)
-    function _polar_angle_velfunc(i)
-        k = Gradus._cart_local_direction(θ₀, ϕ)
-        q = Gradus._cart_local_direction(δs[i] + θ₀, ϕ)
-        
-        b = rodrigues_rotate(k, q, rot)
-
-        ph = atan(b[2], b[1])
-        th = atan(sqrt(b[2]^2 + b[1]^2), b[3])
-
-        Gradus.sky_angles_to_velocity(m, x, v, th, ph)
-    end
-end
-
 function _example(m::AbstractMetric, d::AbstractAccretionGeometry, model::RingCorona, offset; rot = 0, callback = domain_upper_hemisphere(), kwargs...)
     θ₀ = atan(model.r, model.h)
     δs = deg2rad.(range(0, 179.9, 33)) .+ offset
     x, v = Gradus.sample_position_velocity(m, model)
-    velfunc = new_polar_angle_to_velfunc(m, x, v, δs; θ₀ = θ₀, rot = rot)
+    velfunc = Gradus.rotated_polar_angle_to_velfunc(m, x, v, δs, rot; θ₀ = θ₀)
     sols = tracegeodesics(
         m,
         x,
@@ -73,7 +38,7 @@ end
 m = KerrMetric(1.0, 0.9)
 model = RingCorona(9.0, 10.0)
 d = ThinDisc(0.0, 1000.0)
-rr, left, right = calc_emission(m, d, model, deg2rad(00.0))
+rr, left, right = calc_emission(m, d, model, deg2rad(00.0)) ; 
 
 x0 = SVector(0.0, sqrt(model.r^2 + model.h^2), atan(model.h, model.r), 0.0)
 imps = impact_parameters_for_radius(m, x0, d, rr)
