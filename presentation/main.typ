@@ -133,13 +133,25 @@
 
 #slide(title: "Extended coronal models")[
   Assume *axis-symmetric* for computational simplicity.
-  - Decomposition:
+  #set text(size: 20pt)
+  #grid(columns: (50%, 1fr),
+    [
+    Decomposition:
+     - Slice any volume into discs with height $delta h$.
+     - Each disc can be split into $n$ many annuli $(x, x + delta x)$.
+     - Weight contribution of each annulus by its volume.
+    ],
+    [
+      #align(center,
+        image("./figs/decomposition.svg", width: 88%)
+      )
+    ]
+  )
 
   // TODO: figure showing how we decompose the source into volumes
   // Reason how we can treat each annulus as an off axis point and weight it
 
   #cbox(fill: PRIMARY_COLOR, width: 100%, text(fill: SECONDARY_COLOR)[
-    #set text(size: 20pt)
     Each ring *modelled by a single point source*. Totals are weighted sums: e.g. emissivity
     $
      epsilon_"tot" (rho, t) = integral_0^R V(x) epsilon_x (rho, t) dif x,
