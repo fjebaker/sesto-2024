@@ -90,16 +90,25 @@
 ]
 
 #slide(title: "Calculating lags")[
-  The *2D transfer functions* are effectively *Green's functions*, that be *convolved* with other processes:
-  - Reflection spectrum
+  #set text(size: 23pt)
+  The *2D transfer functions* are effectively *Green's functions*, that can be *convolved* with other processes:
 
-  // TODO: figure showing a convolution through a reflionx table
-  // briefly explain how we pick energy bands and then calculate lags between them
-  // if any equations, put the equations in the figures
-
+  #grid(columns: (50%, 1fr),
+  [
+    #set text(size: 18pt)
+  - *Reflection spectrum* (Xillver, Reflionx)
   - Coronal spectrum variability (Mastroserio et al. 2018, 2021)
     - Subtle complexity: *changes in coronal spectrum* propagate through to *changes in emissivity*
     - Skip considering these today for brevity
+    #image("figs/lag-frequency.svg")
+  ],
+  [
+    #move(dy: -0.7em, image("figs/reflection.convolution.png", width: 90%))
+    #move(dy: -0.5em, align(center, text(size: 15pt)[
+      But don't do that! You can convolve e.g. lag-energy spectrum instead! Computationally simpler and makes comparing codes easier.
+    ]))
+  ]
+  )
 ]
 
 #slide(title: "Practical approaches")[
