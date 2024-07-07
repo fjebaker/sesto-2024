@@ -59,9 +59,9 @@
 }
 
 
-#let slide(title: none, body) = {
+#let slide(foreground: TEXT_COLOR, background: SECONDARY_COLOR, title: none, body) = {
   set page(
-    fill: SECONDARY_COLOR,
+    fill: background,
     margin: (bottom: 1.5em)
   )
   let header = align(top, locate( loc => {
@@ -78,8 +78,8 @@
 
   let footer = locate( loc => {
     block(
-      stroke: ( top: 1mm + TEXT_COLOR ), width: 100%, inset: ( y: .3em ),
-      text(.5em, {
+      stroke: ( top: 1mm + foreground ), width: 100%, inset: ( y: .5em ),
+      text(fill: foreground, .5em, {
         "CC BY-SA 4.0 Fergus Baker"
         h(2em)
         "/"
@@ -102,7 +102,7 @@
   )
 
   let content = {
-    block(spacing: 0.8em, par(leading: 10pt, text(fill: TEXT_COLOR, size: 50pt, weight: "black", title)))
+    block(spacing: 0.8em, par(leading: 10pt, text(fill: foreground, size: 50pt, weight: "black", title)))
     body
   }
 

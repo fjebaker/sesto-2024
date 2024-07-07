@@ -80,11 +80,27 @@
 #let cbox(content, ..args) = rect(radius: 3pt, outset: 5pt, ..args, content)
 
 #slide(title: "The observer changes how the disc is seen")[
+  #set text(size: 20pt)
   Trace *observer to disc* and bin by relative *redshift* $g$ and *total arrival time* $t_"tot" = #cbox(stroke:COLOR_CD, $t_("corona" -> "disc")$) + #cbox(stroke: COLOR_REFL, $t_("disc" -> "observer")$)$
+
+  #grid(
+    columns: (33%, 33%, 1fr),
+    column-gutter: 0pt,
+    [
+      #image("./figs/apparent-image.png", width: 100%)
+    ],
+    [
+      #image("./figs/apparent-image-arrival.png", width: 100%)
+    ],
+    [
+      #move(dx: -0.5em, image("./figs/apparent-image-transfer.png", width: 94%))
+    ]
+  )
 
   // TODO: small figure showing the traces we are considering, arrival time of
   // a given radius to the observer, and an example of the 2D transfer function
   // maybe with the redshift equation
+  //   show a ray traced image of the black hole, explain that we bin it all together
 
   - Light bending effects *distorts* the spectrum $g_"obs"$ and arrival time $t_"tot"$ depending on $theta_"observer"$.
 ]
@@ -103,25 +119,23 @@
     #image("figs/lag-frequency.svg")
   ],
   [
-    #move(dy: -0.7em, image("figs/reflection.convolution.png", width: 90%))
-    #move(dy: -0.5em, align(center, text(size: 15pt)[
-      But don't do that! You can convolve e.g. lag-energy spectrum instead! Computationally simpler and makes comparing codes easier.
-    ]))
+    #image("figs/reflection.convolution.png", width: 98%)
   ]
   )
 ]
 
-#slide(title: "Practical approaches")[
-  Binning 2D transfer functions is slow
+#slide(title: "Practicality")[
+  Binning 2D transfer functions is slow ($tilde 10$s of seconds)
+  #set text(size: 24pt)
   - Spectroscopy: use *Cunningham transfer functions* (CTF)
     - Re-parameterize image plane into coordinates on the disc $(alpha, beta) arrow.r (r_"em", g^star)$
-    - Can be efficiently *pre-computed* and *integrated* (e.g. Dauser et al. 2010).
+    - Can be efficiently *pre-computed* and *integrated* (e.g. Dauser et al. 2010 `relline/relconv`).
 
     // TODO: figure showing some transfer functions and the reparameterization,
     // along with maybe some of the time dependence
 
   #cbox(fill: PRIMARY_COLOR, width: 100%, text(fill: SECONDARY_COLOR)[
-    For variability: make *CTF time dependent*, solve a 2D integral instead.
+    For variability: make *CTF time dependent*, solve a 2D integral instead (*fast*, $tilde 1$ ms).
   ])
 ]
 
@@ -132,7 +146,7 @@
   //   - "Is this the variability you were looking for?" No but the light is much better here
   Extended geometry in reverberation modelling largely under explored
   - Often phenomenologically invoked
-  - *Two lamp post* model (Chainakun & Young 2017, Lucchini et al. 2023)
+  - *Two lamp post* model (e.g. Chainakun & Young 2017, Lucchini et al. 2023)
   - Continuous *extended sources* (Wilkins et al. 2016)
 
   // TODO: include some figures from those papers to show how they approach things
@@ -147,7 +161,7 @@
     [
     Decomposition:
      - Slice any volume into discs with height $delta h$.
-     - Each disc can be split into $n$ many annuli $(x, x + delta x)$.
+     - Each disc can be split into annuli $(x, x + delta x)$.
      - Weight contribution of each annulus by its volume.
     ],
     [
@@ -156,9 +170,6 @@
       )
     ]
   )
-
-  // TODO: figure showing how we decompose the source into volumes
-  // Reason how we can treat each annulus as an off axis point and weight it
 
   #cbox(fill: PRIMARY_COLOR, width: 100%, text(fill: SECONDARY_COLOR)[
     Each ring *modelled by a single point source*. Totals are weighted sums: e.g. emissivity
@@ -235,10 +246,25 @@
 ]
 
 #slide(title: "Future work")[
-
+  // how the reflection spectrum changes along the radius of the disc
+  // model coronal spectrum fully
+  // vertically extended sources
+  // package for fitting programs other than SpectralFitting.jl
 ]
 
 // TODO: thank you slide with references and links
-#slide()[
+#slide(background: PRIMARY_COLOR, foreground: SECONDARY_COLOR)[
+  #align(right, text(fill: SECONDARY_COLOR, size: 50pt, weight: "black", "Thank you"))
 
+  #rect(fill: SECONDARY_COLOR, inset: (top: 1em, bottom: 1em), outset: (left: 1em, right: 1em), width: 100%)[
+    #set text(size: 20pt)
+    #grid(
+      columns: (20%, 1fr),
+      row-gutter: 0.7em,
+      [Gradus.jl:],
+      link("https://github.com/astro-group-bristol/Gradus.jl"),
+      [Contact:],
+      link("fergus.baker@bristol.ac.uk"),
+    )
+  ]
 ]
