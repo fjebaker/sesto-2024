@@ -39,6 +39,33 @@
   #align(right)[#image.decode(uob_logo, width: 20%)]
 ]
 
+#slide(title: "Gradus.jl")[
+  #set text(20pt)
+  A new, open-source *general relativistic ray tracing code* \
+  #link("https://github.com/astro-group-bristol/Gradus.jl")
+  #v(1em)
+
+  #grid(columns: (60%, 1fr),
+  [
+  Why another ray tracer?
+  - Designed to be *general* and *extensible*
+  - Make few assumptions in the implementations and provide friendly abstractions
+  - Quickly compute results for new ideas
+  ],
+  [#align(center,image("figs/gradus_logo.png", width: 60%))],
+  [
+  Written in the *Julia* programming language
+  - Easy to install and use:
+  ```julia
+  julia>] add Gradus
+  ```
+  #text(size: 14pt,
+  [(with the caveat that you need the Bristol Astrophysics registry)])
+],
+  [#align(center,image("figs/julia-logo-color.svg", width: 60%))],
+)
+]
+
 // ==== Part 1 ============================================================= //
 
 #let im_lamppost = read("figs/lamp-post.traces-export.svg")
@@ -68,13 +95,16 @@
 ]
 
 #slide(title: "The corona changes the emissivity of the disc")[
-  *Flux* into the disc changes as a function of *radius*:
+  #set text(size: 18pt)
+  Observed *steep emissivity profile* (e.g. Fabian et al., 2004)
+  - Phenomenologically described by a broken power law; well-fitted by the lamp post model (Wilkins & Fabian, 2012)
 
-  // TODO: figures showing how number of photons changes per radial bin
-  // with different coronal heights
-  // also show how the arrival time on each patch of the disc changes
+  #v(-0.8em)
+  #align(center, image(
+    "./figs/emissivity-and-time.svg",
+  ))
 
-  Observed *steep emissivity profile* motivates the lamp post corona (Fabian et al. 2004).
+  Emissivity is sensitive to the *geometry of the corona*, and *reflection fraction* can disambiguate similar emissivities (Gonzalez et al., 2017).
 ]
 
 #let cbox(content, ..args) = rect(radius: 3pt, outset: 5pt, ..args, content)
@@ -106,17 +136,18 @@
 ]
 
 #slide(title: "Calculating lags")[
-  #set text(size: 23pt)
+  #set text(size: 18pt)
   The *2D transfer functions* are effectively *Green's functions*, that can be *convolved* with other processes:
 
   #grid(columns: (50%, 1fr),
   [
-    #set text(size: 18pt)
   - *Reflection spectrum* (Xillver, Reflionx)
+  - *Instrument response* (Ingram et al. 2019)
   - Coronal spectrum variability (Mastroserio et al. 2018, 2021)
     - Subtle complexity: *changes in coronal spectrum* propagate through to *changes in emissivity*
     - Skip considering these today for brevity
-    #image("figs/lag-frequency.svg")
+    #v(-0.5em)
+    #align(center, image("figs/lag-frequency.svg", width: 80%))
   ],
   [
     #image("figs/reflection.convolution.png", width: 98%)
@@ -125,33 +156,52 @@
 ]
 
 #slide(title: "Practicality")[
+  #set text(size: 20pt)
   Binning 2D transfer functions is slow ($tilde 10$s of seconds)
-  #set text(size: 24pt)
-  - Spectroscopy: use *Cunningham transfer functions* (CTF)
-    - Re-parameterize image plane into coordinates on the disc $(alpha, beta) arrow.r (r_"em", g^star)$
+  - Spectroscopy: use *Cunningham transfer functions* (CTF; Cunningham, 1975)
+    #grid(columns: (50%, 50%),
+    [
+      - Re-parameterize image plane into coordinates on the disc\ $(alpha, beta) arrow.r (r_"em", g^star)$
+      - Gives a more natural way set of parameter to describe physics of the disc
+  ],
+    [
+      #align(center, image(
+        "./figs/reparameterization.svg",
+        width: 100%,
+      ))
+    ]
+    )
     - Can be efficiently *pre-computed* and *integrated* (e.g. Dauser et al. 2010 `relline/relconv`).
 
-    // TODO: figure showing some transfer functions and the reparameterization,
-    // along with maybe some of the time dependence
-
+  #v(1em)
   #cbox(fill: PRIMARY_COLOR, width: 100%, text(fill: SECONDARY_COLOR)[
-    For variability: make *CTF time dependent*, solve a 2D integral instead (*fast*, $tilde 1$ ms).
+    For variability: make *CTF time dependent*, solve a 2D integral instead (*fast*, approaching $tilde$ ms).
   ])
 ]
 
 // ==== Part 2 ============================================================= //
 
 #slide(title: "Moving out from under the lamp post")[
-  // - Joke about person searching for keys under the lamp post
-  //   - "Is this the variability you were looking for?" No but the light is much better here
-  Extended geometry in reverberation modelling largely under explored
-  - Often phenomenologically invoked
-  - *Two lamp post* model (e.g. Chainakun & Young 2017, Lucchini et al. 2023)
-  - Continuous *extended sources* (Wilkins et al. 2016)
+  #set text(size: 20pt)
+  Extended coronal geometry in reverberation modelling:
+  #grid(columns: (60%, 1fr),
+    row-gutter: 10pt,
+    [
+      - *Two lamp post* model (e.g. Chainakun & Young, 2017, Lucchini et al., 2023)
+    ], [
+      #image("./figs/chainakun_young_2017.png", width: 90%)
+    ],
+    [
+      - Towards continuous *extended sources* (Wilkins et al., 2016)
+    ],
+    [
+      #image("./figs/wilkins_et_al_2014.png", width: 90%)
+    ]
+  )
+
+
 
   // TODO: include some figures from those papers to show how they approach things
-
-  Motivation to study extended sources in detail to explore what is possible.
 ]
 
 #slide(title: "Extended coronal models")[
@@ -183,12 +233,9 @@
 #let im_extendpost = read("figs/extended.traces-export.svg")
 
 #slide(title: "An extended picture")[
-  As suggested in the last slide, *emissivity* is now *time dependent*. Why? Consider 2D slice of one annulus:
+  *Emissivity* is now *time dependent*. Why? Consider 2D slice of one annulus:
   #place(move(dy: 0.5em, dx: 2em, uncover("3-", block(width: 58%, text(size: 18pt)[
     Sweep 2D plane around the axis to find a geodesic that hits each $phi.alt$. Plotted is the arrival time $t_("corona" -> "disc")$.
-  ]))))
-  #place(move(dy: 4em, dx: 2.5em, uncover(4, block(width: 50%, text(size: 18pt)[
-    Axis symmetry: can treat a single point as a ring up to normalisation.
   ]))))
   #align(center)[
     #animsvg(
@@ -199,7 +246,6 @@
       (),
       (hide: ("g126",), display: ("g142",)),
       (display: ("g143", "g133")),
-      (),
       handout: HANDOUT_MODE,
     )
   ]
@@ -211,10 +257,23 @@
   )
   #set text(size: 20pt)
   *Left*: Kerr spacetime ($a=0.998$). #h(1fr) *Right*: Flat spacetime. \
-  The purple-orange surface is for a ring at $rho=11 r_"g"$, whereas the green-pink surface is $rho = 5 r_"g"$ (both at $h = 5 r_"g"$, colour scale is $log_(10)$).
+  The purple-orange surface is for a ring-corona at $x=11 r_"g"$, whereas the green-pink surface is $x = 5 r_"g"$ (both at $h = 5 r_"g"$, colour scale is $log_(10)$).
 ]
 
-#slide(title: "Additional challenges")[
+#slide(title: [Some illustrative results])[
+  The effect on the 2D transfer functions:
+  #v(1em)
+  #align(center, image("figs/extended-transfer-comparison.png", width: 90%))
+]
+
+#slide(title: [Some illustrative results])[
+  #align(center, image("figs/extended-comparison.svg", width: 70%))
+  #set text(size: 20pt)
+  *Top*: lamp post $h = 10 r_"g"$.
+  *Bottom*: extended disc-like $h = 10 r_"g", x_"max" = 30 r_"g"$
+]
+
+#slide(title: "What else can we include")[
   #set text(size: 20pt)
   Propagating *source* fluctuations: each region of the corona
   #grid(
@@ -236,20 +295,34 @@
     image("./figs/continuum.transfer-function.png", width: 70%)
   )
   #text(size: 18pt)[
-    *Left*: co-rotating with disc. #h(1fr) *Right*: constant angular velocity. \
-    Both have $rho_"max" = 20 r_"g"$, $h = 5 r_"g"$ and $theta_"obs" = 45 degree$.
+    #h(2em)*Left*: $theta = 45 degree$ #h(1fr) *Right*: $theta = 75 degree$#h(2em) \
+    Both have $rho_"max" = 20 r_"g"$ and $h = 5 r_"g"$.
   ]
 ]
 
-#slide(title: [Illustrative #super(text(size: 20pt, weight: "regular", "(preliminary)")) results])[
-  // - show the effects of changing some of these parameters
-]
+#slide(title: "Some closing thoughts")[
+  Future work:
+  #v(0.5em)
+  #set text(size: 20pt)
 
-#slide(title: "Future work")[
-  // how the reflection spectrum changes along the radius of the disc
-  // model coronal spectrum fully
-  // vertically extended sources
-  // package for fitting programs other than SpectralFitting.jl
+  When considering extended corona sources, what is the *opacity* of the corona?
+  - Obscuration of the disc
+  - Optical depth depends on the specific coronal emission model; incorporate the *radiative transfer* capabilities of Gradus.jl
+
+  #v(1em)
+  Propagating fluctuations:
+  - Coupling variability in the disc to variability in the corona
+
+  #v(1em)
+  Polarization effects:
+  - Gradus.jl can compute *parallel transport* along geodesics
+  - Incorporate Compton scattering models and calculate the polarization
+
+  #v(1em)
+  #cbox(fill: PRIMARY_COLOR, width: 100%, text(fill: SECONDARY_COLOR)[
+    One of our main goals:
+    - Provide the *tooling* to make these types of explorations *tractable*.
+  ])
 ]
 
 // TODO: thank you slide with references and links
@@ -263,8 +336,10 @@
       row-gutter: 0.7em,
       [Gradus.jl:],
       link("https://github.com/astro-group-bristol/Gradus.jl"),
-      [Contact:],
-      link("fergus.baker@bristol.ac.uk"),
+      [#v(1em)Presentation source code:],
+      [#align(bottom, link("https://github.com/fjebaker/sesto-2024"))],
+      [#v(1em)Contact:],
+      [#v(1em)#link("fergus.baker@bristol.ac.uk")],
     )
   ]
 ]
