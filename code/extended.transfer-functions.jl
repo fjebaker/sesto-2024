@@ -24,7 +24,7 @@ function _do_integration(x, itb, gbins, tbins, prof)
         gbins,
         tbins;
         t0 = Gradus.continuum_time(m, x, model),
-        n_radii = 2000,
+        n_radii = 4000,
         rmin = minimum(radii),
         rmax = maximum(radii),
     )
@@ -48,13 +48,13 @@ model = DiscCorona(30.0, 10.0)
 
 prof = @time emissivity_profile(m, d, model; n_samples = 600, n_rings = 20)
 
-gbins = collect(range(0.0, 1.4, 1300))
-tbins = collect(range(-20, 2000.0, 3000))
+gbins = collect(range(0.0, 1.4, 1000))
+tbins = collect(range(-20, 250.0, 1000))
 
 flux2 = _do_integration(x, itb, gbins, tbins, prof)
 
 begin
-    lpflux = flux_profile(m, x, d, LampPostModel(h = model.h), itb, gbins, tbins)
+    lpflux = @time flux_profile(m, x, d, LampPostModel(h = model.h), itb, gbins, tbins)
     freq1, tau1 = @time Gradus.lag_frequency(tbins, lpflux)
     freq2, tau2 = @time Gradus.lag_frequency(tbins, flux2)
 end

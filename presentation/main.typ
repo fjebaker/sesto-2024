@@ -192,7 +192,7 @@
       #image("./figs/chainakun_young_2017.png", width: 90%)
     ],
     [
-      - Towards continuous *extended sources* (Wilkins et al., 2016)
+      - Towards general *extended sources* (*Wilkins et al., 2016*)
     ],
     [
       #image("./figs/wilkins_et_al_2014.png", width: 90%)
@@ -301,13 +301,16 @@
 ]
 
 #slide(title: "Some closing thoughts")[
-  Future work:
-  #v(0.5em)
   #set text(size: 20pt)
 
   When considering extended corona sources, what is the *opacity* of the corona?
   - Obscuration of the disc
   - Optical depth depends on the specific coronal emission model; incorporate the *radiative transfer* capabilities of Gradus.jl
+
+  #v(1em)
+
+  Piecing together coronal models:
+  - Combining warm and hot corona models for reflection and reverberation
 
   #v(1em)
   Propagating fluctuations:
