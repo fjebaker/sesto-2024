@@ -6,7 +6,7 @@ using SpectralFitting
 using DataInterpolations
 
 reftable = Reflionx.parse_run("data/reflionx/grid")
-ref_spec = reftable.grids[4,1,3]
+ref_spec = reftable.grids[4, 1, 3]
 
 m = KerrMetric(1.0, 0.998)
 x = SVector(0.0, 1000.0, deg2rad(45), 0.0)
@@ -24,14 +24,14 @@ tbins = collect(range(0, 125.0, 500))
 t0 = Gradus.continuum_time(m, x, model)
 
 flux = Gradus.integrate_lagtransfer(
-    prof, 
-    itb, 
-    gbins, 
-    tbins; 
+    prof,
+    itb,
+    gbins,
+    tbins;
     t0 = t0,
     n_radii = 6000,
     rmin = minimum(radii),
-    rmax = maximum(radii)
+    rmax = maximum(radii),
 )
 
 # upscale the grid we are interested in
@@ -50,57 +50,54 @@ end
 new_flux = map(i -> isapprox(i, 0, atol = 1e-8) ? 0 : i, reduce(hcat, out))
 
 begin
-    fig = Figure(
-        size = (600, 600),
-        backgroundcolor = RGBAf(0.0, 0.0, 0.0, 0.0),
-    )
-    ga = fig[1,1] = GridLayout()
+    fig = Figure(size = (600, 600), backgroundcolor = RGBAf(0.0, 0.0, 0.0, 0.0))
+    ga = fig[1, 1] = GridLayout()
 
     ax1 = Axis(
-        ga[1,1],
+        ga[1, 1],
         ylabel = "E / E₀",
         xlabel = "Time after continuum (GM/c³)",
         title = "2D Transfer Function",
-        backgroundcolor = RGBAf(0.0, 0.0, 0.0, 0.0)
+        backgroundcolor = RGBAf(0.0, 0.0, 0.0, 0.0),
     )
     ax2 = Axis(
-        ga[1,2],
+        ga[1, 2],
         yscale = log10,
         xlabel = "Energy (keV)",
         ylabel = "Flux (arb.)",
         title = "Reflionx Reflection Spectrum",
         yaxisposition = :right,
-        backgroundcolor = RGBAf(0.0, 0.0, 0.0, 0.0)
+        backgroundcolor = RGBAf(0.0, 0.0, 0.0, 0.0),
     )
     ax3 = Axis(
-        ga[2,1:2],
+        ga[2, 1:2],
         ylabel = "Energy (keV)",
         xlabel = "Time after continuum (GM/c³)",
         yticks = [0, 2, 4, 6, 8],
-        backgroundcolor = RGBAf(0.0, 0.0, 0.0, 0.0)
+        backgroundcolor = RGBAf(0.0, 0.0, 0.0, 0.0),
     )
-    
+
     heatmap!(
         ax1,
         tbins,
         gbins,
         log10.(replace(flux', 0 => NaN)),
-        colormap = Reverse(:matter)
+        colormap = Reverse(:matter),
     )
     heatmap!(
         ax3,
         tbins,
         erange,
         log10.(replace(new_flux', 0 => NaN)),
-        colormap = Reverse(:matter)
+        colormap = Reverse(:matter),
     )
-    
+
     ylims!(ax3, 0.0, 8.0)
     xlims!(ax2, 0.0, 8.0)
-    
+
     lines!(ax2, erange, values)
     rowsize!(ga, 1, Auto(0.45))
-        
+
     Makie.save("presentation/figs/_raw/reflection.convolution.png", fig)
     fig
 end

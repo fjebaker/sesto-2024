@@ -1,13 +1,29 @@
 include("common.jl")
 
-function flux_profile(m, x, d, model, itb, gbins, tbins; n_samples = 3000)
-    prof = @time emissivity_profile(m, d, model; n_samples = n_samples)
-    flux = Gradus.integrate_lagtransfer(
-        prof, 
-        itb, 
-        gbins, 
-        tbins; 
-        t0 = x[2],
+function Gradus.continuum_time(m::AbstractMetric, x, model::DiscCorona)
+    radii = range(0.9, model.r, 60) |> collect
+    itb1 = @time Gradus.interpolated_transfer_branches(
+        m,
+        x,
+        DatumPlane(model.h),
+        radii;
+        verbose = true,
+        β₀ = 7.0,
+    )
+    all_times = Float64[]
+    for branch in itb1.branches
+        append!(all_times, branch.lower_t.u, branch.upper_t.u)
+    end
+    sum(all_times) / length(all_times)
+end
+
+function _do_integration(x, itb, gbins, tbins, prof)
+    flux = @time Gradus.integrate_lagtransfer(
+        prof,
+        itb,
+        gbins,
+        tbins;
+        t0 = Gradus.continuum_time(m, x, model),
         n_radii = 2000,
         rmin = minimum(radii),
         rmax = maximum(radii),
@@ -15,108 +31,59 @@ function flux_profile(m, x, d, model, itb, gbins, tbins; n_samples = 3000)
     replace!(flux, 0.0 => NaN)
 end
 
+function flux_profile(m, x, d, model, itb, gbins, tbins; n_samples = 10_000, kwargs...)
+    prof = @time emissivity_profile(m, d, model; n_samples = n_samples, kwargs...)
+    _do_integration(x, itb, gbins, tbins, prof)
+end
+
 m = KerrMetric(1.0, 0.998)
 x = SVector(0.0, 10000.0, deg2rad(45), 0.0)
 
 # currently needs an infinite disc for the root finder (patch coming soon)
 d = ThinDisc(0.0, Inf)
-radii = Gradus.Grids._inverse_grid(Gradus.isco(m), 1300.0, 200)
+radii = Gradus.Grids._geometric_grid(Gradus.isco(m), 1000.0, 300)
 itb = @time Gradus.interpolated_transfer_branches(m, x, d, radii; verbose = true)
 
-model = DiscCorona(10.0, 10.0)
+model = DiscCorona(30.0, 10.0)
 
-prof = @time emissivity_profile(m, d, model; n_samples = 200)
+prof = @time emissivity_profile(m, d, model; n_samples = 600, n_rings = 20)
 
-gbins = collect(range(0.0, 1.4, 300))
-tbins = collect(range(0, 800.0, 900))
+gbins = collect(range(0.0, 1.4, 1300))
+tbins = collect(range(-20, 2000.0, 3000))
 
-# dispatches special methods for calculating the emissivity profile if available
-function _velocity_function(r)
-    0
-end
-
-flux = @time flux_profile(m, x, d, model, itb, gbins, tbins; n_samples = 600)
-
-begin
-    p = heatmap(
-        tbins,
-        gbins,
-        log10.(flux')
-    )
-end
+flux2 = _do_integration(x, itb, gbins, tbins, prof)
 
 begin
     lpflux = flux_profile(m, x, d, LampPostModel(h = model.h), itb, gbins, tbins)
     freq1, tau1 = @time Gradus.lag_frequency(tbins, lpflux)
-    freq2, tau2 = @time Gradus.lag_frequency(tbins, flux)
+    freq2, tau2 = @time Gradus.lag_frequency(tbins, flux2)
 end
 
 begin
-    fig = Figure()
+    fig = Figure(size = (700, 300), backgroundcolor = RGBAf(0.0, 0.0, 0.0, 0.0))
     ax = Axis(
-        fig[1,1],
-        xscale = log10,
-    )    
-    
-    lines!(ax, freq1, tau1)
-    lines!(ax, freq2, tau2)
-    xlims!(ax, 1e-4, 1)
-    ylims!(ax, -5, 30)
+        fig[1, 1],
+        backgroundcolor = RGBAf(0.0, 0.0, 0.0, 0.0),
+        xlabel = "Time after continuum (GM/c³)",
+        ylabel = "E / E₀",
+        title = "Lamp post h=10.0",
+    )
+    ax2 = Axis(
+        fig[1, 2],
+        backgroundcolor = RGBAf(0.0, 0.0, 0.0, 0.0),
+        xlabel = "Time after continuum (GM/c³)",
+        title = "Extended corona h=10, x=30",
+    )
+    p = heatmap!(ax, tbins, gbins, log10.(lpflux'), colormap = :batlow)
+    p = heatmap!(ax2, tbins, gbins, log10.(flux2'), colormap = :batlow)
+    hideydecorations!(ax2, grid = false)
+    xlims!(ax, nothing, 150)
+    xlims!(ax2, nothing, 150)
+    ylims!(ax, nothing, 1.2)
+    ylims!(ax2, nothing, 1.2)
+    vlines!(ax, [0.0], color = :black, linestyle = :dash)
+    vlines!(ax2, [0.0], color = :black, linestyle = :dash)
 
-    fig
-end
-
-
-function lag_energy(data, flow, fhi)
-    f_example = data[1][1]
-    i1 = findfirst(>(flow), f_example)
-    i2 = findfirst(>(fhi), f_example)
-    lE = map(data) do (_, tau)
-        sum(tau[i1:i2]) / (i2 - i1)
-    end
-end
-
-function lag_frequency_rowwise(t, f::AbstractMatrix; flo = 1e-5, kwargs...)
-    map(eachrow(f)) do ψ
-        t_extended, ψ_extended = Gradus.extend_domain_with_zeros(t, ψ, 1 / flo)
-        Gradus.lag_frequency(t_extended, ψ_extended; kwargs...)
-    end
-end
-
-
-data = lag_frequency_rowwise(tbins, replace(flux, NaN => 0))
-lp_data = lag_frequency_rowwise(tbins, replace(lpflux, NaN => 0))
-
-begin
-    lims1 = (1e-3, 2e-3)
-    lims2 = (4e-3, 8e-3)
-    lims3 = (1.9e-2, 4e-2)
-    lims4 = (1e-5, 1e-4)
-
-    le1 = lag_energy(data, lims1...)
-    le2 = lag_energy(data, lims2...)
-    le3 = lag_energy(data, lims3...)
-    le4 = lag_energy(data, lims4...)
-
-    lp_le1 = lag_energy(lp_data, lims1...)
-    lp_le2 = lag_energy(lp_data, lims2...)
-    lp_le3 = lag_energy(lp_data, lims3...)
-    lp_le4 = lag_energy(lp_data, lims4...)
-end
-
-begin
-    fig = Figure()
-    ax = Axis(
-        fig[1,1],
-    )    
-    
-    palette = _default_palette()
-    
-    for (le, lple) in zip((le1, le2, le3, le4), (lp_le1, lp_le2, lp_le3, lp_le4))
-        color = popfirst!(palette)
-        lines!(ax, gbins, le, color = color)
-        lines!(ax, gbins, lple, color = color, linestyle = :dot)
-    end
-
+    Makie.save("presentation/figs/_raw/extended-transfer-comparison.png", fig)
     fig
 end

@@ -24,7 +24,7 @@ end
 m = KerrMetric(a = 0.9)
 d = ShakuraSunyaev(m, eddington_ratio = 0.2)
 
-model = LampPostModel(h= 7.0, θ = 1e-6)
+model = LampPostModel(h = 7.0, θ = 1e-6)
 sols1 = trace_even(m, d, model)
 
 sols_all = vcat(sols1.u[1:8], sols1.u[10:end]);
@@ -57,21 +57,21 @@ begin
         H = Gradus._spinaxis_project(gpx)
         (R, H)
     end
-    
+
     targets = filter(i -> i[1] < 15, targets)
-    
+
     x = SVector(0.0, 50.0, deg2rad(55), 0.0)
     impact_params = map(targets) do ((r, H))
-        th = -π/2
+        th = -π / 2
         R, _ = find_offset_for_radius(m, x, Gradus.DatumPlane(H), r, th)
-        α = R * cos(th) 
+        α = R * cos(th)
         β = R * sin(th)
         (α, β)
     end
-    
+
     vs = [map_impact_parameters(m, x, a, b) for (a, b) in impact_params]
     xs = fill(x, size(vs))
-    
+
     ob_sols = tracegeodesics(m, xs, vs, d, 2000.0)
 end
 
@@ -79,7 +79,7 @@ end
 begin
     origin_gp = unpack_solution(sols1.u[19])
     model2 = LampPostModel(h = origin_gp.x[2], θ = origin_gp.x[3])
-    
+
     returnsols = trace_even(m, d, model2; δs = collect(range(0, 2π, 50)))
 end
 
@@ -96,13 +96,19 @@ begin
             Gradus.terminate_with_status!(StatusCodes.OutOfDomain),
         )
     end
-    direct = tracegeodesics(m, x, map_impact_parameters(m, x, a0, b0), 2000.0, callback = _kill_callback())
+    direct = tracegeodesics(
+        m,
+        x,
+        map_impact_parameters(m, x, a0, b0),
+        2000.0,
+        callback = _kill_callback(),
+    )
 end
 
 begin
     fig = Figure(size = (500, 400))
     ax2 = Axis(
-        fig[1,1],
+        fig[1, 1],
         aspect = DataAspect(),
         yticks = LinearTicks(3),
         topspinevisible = false,
@@ -119,9 +125,16 @@ begin
     # plot_paths_xz!(ax2, ob_sols)
     plot_paths_xz!(ax2, returnsols)
     # plot_path_xz!(ax2, direct)
-    
-    draw_observer_eye!(ax2, x[2] * sin(x[3]) + 2, x[2] * cos(x[3]) + 1.6, 1.0; rot = deg2rad(40 + 180), linewidth = 2.3)
-   
+
+    draw_observer_eye!(
+        ax2,
+        x[2] * sin(x[3]) + 2,
+        x[2] * cos(x[3]) + 1.6,
+        1.0;
+        rot = deg2rad(40 + 180),
+        linewidth = 2.3,
+    )
+
     begin
         lines!(ax2, radii, heights, color = :black)
         lines!(ax2, radii, -heights, color = :black)

@@ -86,13 +86,13 @@ begin
 
     fig = Figure(resolution = (460, 300), backgroundcolor = RGBAf(0.0, 0.0, 0.0, 0.0))
     ax = Axis(
-        fig[1,1],
+        fig[1, 1],
         xscale = log10,
         xminorgridvisible = true,
         xminorticks = IntervalsBetween(10),
         ylabel = "Lag (GM/c³)",
         xlabel = "Frequency (Hz)",
-        backgroundcolor = RGBAf(0.0, 0.0, 0.0, 0.0)
+        backgroundcolor = RGBAf(0.0, 0.0, 0.0, 0.0),
     )
 
     color = popfirst!(palette)
@@ -145,7 +145,7 @@ begin
     yy = @. 1 / (2 * π * x)
 
     Legend(
-        fig[1,2],
+        fig[1, 2],
         [l1, l2, l3, l4],
         map(_format_model, [model1, model2, model3, model4]),
         orientation = :vertical,

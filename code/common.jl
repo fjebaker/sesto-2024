@@ -1,9 +1,8 @@
-using Gradus, Makie, CairoMakie
+using Gradus, Makie, CairoMakie, LaTeXStrings
 using CoordinateTransformations, Rotations, LinearAlgebra
 import Gradus.DataInterpolations as DataInterpolations
 
-_default_palette() = 
-    Iterators.Stateful(Iterators.Cycle(Makie.wong_colors()))
+_default_palette() = Iterators.Stateful(Iterators.Cycle(Makie.wong_colors()))
 
 function clip_plot_lines!(ax, x, y, z; dim = 10.0, kwargs...)
     mask = @. (x > dim) | (x < -dim) | (y > dim) | (y < -dim) | (z > 1.05dim)
@@ -71,15 +70,7 @@ function plot_line_occluded!(ax, x, y, z, R; kwargs...)
         e += 1
     end
     if s != e
-        clip_plot_lines!(
-            ax,
-            x[s:e-1],
-            y[s:e-1],
-            z[s:e-1],
-            linewidth = 0.8,
-            ;
-            kwargs...,
-        )
+        clip_plot_lines!(ax, x[s:e-1], y[s:e-1], z[s:e-1], linewidth = 0.8, ; kwargs...)
     end
 end
 
@@ -108,7 +99,7 @@ function bounding_sphere!(ax; R = 1.005, kwargs...)
         translated[2, :],
         translated[3, :];
         linewidth = 1.9,
-        kwargs...
+        kwargs...,
     )
     #translated
 end
@@ -131,7 +122,15 @@ function is_visible(ax, points, R)
     end
 end
 
-function plot_sol(ax, x; show_intersect = false, R = 1.0, dim = 10.0, horizon_r = R, kwargs...)
+function plot_sol(
+    ax,
+    x;
+    show_intersect = false,
+    R = 1.0,
+    dim = 10.0,
+    horizon_r = R,
+    kwargs...,
+)
     cart_points = []
     for t in range(x.t[1], min(200, x.t[end]), 5_000)
         p = x(t)[1:4]
@@ -157,7 +156,7 @@ function plot_sol(ax, x; show_intersect = false, R = 1.0, dim = 10.0, horizon_r 
             res[s:e, 2],
             res[s:e, 3];
             linewidth = 0.8,
-            kwargs...
+            kwargs...,
         )
         s = findnext(==(true), mask, e)
         if isnothing(s)
@@ -174,8 +173,8 @@ function plot_sol(ax, x; show_intersect = false, R = 1.0, dim = 10.0, horizon_r 
         res[s:e, 2],
         res[s:e, 3];
         linewidth = 0.8,
-            dim = dim,
-        kwargs...
+        dim = dim,
+        kwargs...,
     )
     if show_intersect && x.prob.p.status[] == Gradus.StatusCodes.IntersectedWithGeometry
         clip_plot_scatter!(
@@ -186,12 +185,23 @@ function plot_sol(ax, x; show_intersect = false, R = 1.0, dim = 10.0, horizon_r 
             dim = dim,
             horizon_r = horizon_r,
             markersize = 8,
-            kwargs...
+            kwargs...,
         )
     end
 end
 
-function plot_along_ring!(ax, r, Xs, Ys; N = 100, rot = 0, linewidth = 1.0, zero = 0.0, band_alpha = 0.1, kwargs...)
+function plot_along_ring!(
+    ax,
+    r,
+    Xs,
+    Ys;
+    N = 100,
+    rot = 0,
+    linewidth = 1.0,
+    zero = 0.0,
+    band_alpha = 0.1,
+    kwargs...,
+)
     XX = mod2pi.(Xs)
     I = sortperm(XX)
     _interp = @views DataInterpolations.LinearInterpolation(Ys[I], XX[I])
@@ -246,7 +256,7 @@ spher2cart(_, r, θ, ϕ) = spher2cart(r, θ, ϕ)
 
 # this function is absolutely terrible but it does the job of drawing an eye
 function draw_observer_eye!(ax, x0, y0, scale; flip = false, linewidth = 4.0, rot = 0)
-    rotmat = [cos(rot) -sin(rot) ; sin(rot) cos(rot)]
+    rotmat = [cos(rot) -sin(rot); sin(rot) cos(rot)]
 
     x_xfm(x) = @. scale * x * (flip ? -1 : 1) + x0
     y_xfm(y) = @. scale * y + y0
