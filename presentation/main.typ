@@ -64,6 +64,9 @@
 ],
   [#align(center,image("figs/julia-logo-color.svg", width: 60%))],
 )
+  #v(2em)
+  #text(size: 14pt,
+  [#align(right, "Baker & Young, in prep.")])
 ]
 
 // ==== Part 1 ============================================================= //
@@ -162,7 +165,7 @@
     #grid(columns: (50%, 50%),
     [
       - Re-parameterize image plane into coordinates on the disc\ $(alpha, beta) arrow.r (r_"em", g^star)$
-      - Gives a more natural way set of parameter to describe physics of the disc
+      - Gives a more natural set of parameter to describe physics of the disc
   ],
     [
       #align(center, image(
